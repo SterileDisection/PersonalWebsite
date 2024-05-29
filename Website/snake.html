@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #201658 0%, #2575fc 100%);
+            display: flex;
+            font-family: 'Roboto', sans-serif;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #game-container {
+            width: 400px;
+            height: 400px;
+            position: relative;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        h1 {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        canvas {
+            display: block;
+            background-color: #c0c0c0;
+            margin: auto;
+        }
+
+        .game-over-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .game-over-popup h2 {
+            margin-top: 0;
+        }
+
+        .game-over-popup button {
+            background-color: #ddd;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .game-over-popup button:hover {
+            background-color: #ccc;
+        }
+
+        #back-button:hover {
+            background-color: #333;
+        }
+
+        .button {
+            background-color: #000000;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            text-transform: uppercase;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        #animation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Ensure the animation is behind everything */
+        }
+
+        #animation {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 30%;
+            /* Set initial width */
+            max-width: 600px;
+            /* Limit maximum width */
+            padding: 20px;
+            color: white;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent background */
+        }
+
+        /* Hide sidebar for smaller screens */
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="animation-container">
+        <iframe id="animation" src="animation.html" frameborder="0"></iframe>
+    </div>
+    <div class="sidebar">
+        <h2>How I Made This Game</h2>
+
+        <h2>HTML Structure:</h2>
+        <p>The HTML structure was crafted to lay the groundwork for the Snake game's interface. Essential elements
+            included a dedicated area for the game canvas, which serves as the playing field, alongside headings for the
+            game's title and instructions. Controls for starting, pausing, and restarting the game, as well as a display
+            for the player's score, were also integrated to create a comprehensive user interface.</p>
+
+        <h2>CSS Styling:</h2>
+        <p>To create a visually appealing and user-friendly interface, CSS styling was applied extensively throughout
+            the game. This involved designing a clean and modern layout that emphasizes the gameplay area while
+            providing easy access to game controls. Styling was focused on enhancing the visibility of the snake and
+            food items with contrasting colors, and ensuring that text elements like score and instructions are easily
+            readable. Responsive design techniques were also employed to ensure the game is accessible on various
+            devices and screen sizes.</p>
+
+        <h2>JavaScript Functionality:</h2>
+        <p>JavaScript played a pivotal role in bringing the Snake game to life, handling game dynamics and logic. I
+            initialized variables to manage the snake's movement, direction, growth mechanism, and the generation of
+            food items on the canvas. Event listeners were used to capture keyboard inputs for direction control, while
+            functions were crafted for collision detection, scoring, and updating the game state. The game loop was
+            carefully designed to ensure smooth and consistent gameplay.</p>
+
+        <h2>Game Logic:</h2>
+        <p>The gameplay logic was meticulously developed to capture the essence of the classic Snake game. This involved
+            implementing rules for snake movement, growth upon eating food, and game over conditions triggered by
+            colliding with the game boundaries or the snake's own body. Strategies for dynamically generating food items
+            on the canvas were also incorporated. I integrated clear and concise feedback for the player, including
+            score updates and game over messages, to enhance the gaming experience. Extensive testing was conducted to
+            ensure the game performed reliably and provided an engaging challenge for players.</p>
+    </div>
+
+
+
+    <div id="game-container">
+        <h1>Snake Game</h1>
+        <h2>Controls are the arrow keypad</h2>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <button id="back-button" class="button" onclick="window.location.href='portfolio.html'">Back</button>
+        <footer><p style="color: #537FE7;">&copy; 2024 Aaron Pacheco. All Rights Reserved.</p></footer>
+
+    </div>
+
+
+    <div class="game-over-popup" id="gameOverPopup">
+        <h2>Game Over</h2>
+        <p>Final Score: <span id="finalScore"></span></p>
+        <button id="tryAgainButton">Try Again</button>
+        <button id="quitButton">Quit</button>
+    </div>
+
+
+
+    <script>
+
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const scale = 20;
+        const rows = canvas.height / scale;
+        const columns = canvas.width / scale;
+
+        let snake;
+        let fruit;
+        let gameOverPopup = document.getElementById('gameOverPopup');
+        let finalScoreDisplay = document.getElementById('finalScore');
+
+        (function setup() {
+            snake = new Snake();
+            fruit = new Fruit();
+            fruit.pickLocation();
+
+            window.setInterval(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                fruit.draw();
+                snake.update();
+                snake.draw();
+
+                if (snake.eat(fruit)) {
+                    fruit.pickLocation();
+                }
+
+                snake.checkCollision();
+                document.querySelector('.score').innerText = snake.total;
+
+                if (snake.total === 0) {
+                    showGameOverPopup();
+                }
+
+            }, 150);
+        }());
+
+        window.addEventListener('keydown', (evt) => {
+            const direction = evt.key.replace('Arrow', '');
+            snake.changeDirection(direction);
+        });
+
+        function Snake() {
+            this.x = 0;
+            this.y = 0;
+            this.xSpeed = scale * 1;
+            this.ySpeed = 0;
+            this.total = 0;
+            this.tail = [];
+
+            this.draw = function () {
+                ctx.fillStyle = "#45a049";
+                for (let i = 0; i < this.tail.length; i++) {
+                    ctx.fillRect(this.tail[i].x, this.tail[i].y, scale, scale);
+                }
+
+                ctx.fillStyle = "#2e7d32";
+                ctx.fillRect(this.x, this.y, scale, scale);
+            };
+
+            this.update = function () {
+                for (let i = 0; i < this.tail.length - 1; i++) {
+                    this.tail[i] = this.tail[i + 1];
+                }
+
+                this.tail[this.total - 1] = { x: this.x, y: this.y };
+
+                this.x += this.xSpeed;
+                this.y += this.ySpeed;
+
+                if (this.x >= canvas.width || this.x < 0 || this.y >= canvas.height || this.y < 0) {
+                    showGameOverPopup();
+                    return;
+                }
+            };
+
+            this.changeDirection = function (direction) {
+                switch (direction) {
+                    case 'Up':
+                        if (this.ySpeed !== scale * 1) {
+                            this.xSpeed = 0;
+                            this.ySpeed = -scale * 1;
+                        }
+                        break;
+                    case 'Down':
+                        if (this.ySpeed !== -scale * 1) {
+                            this.xSpeed = 0;
+                            this.ySpeed = scale * 1;
+                        }
+                        break;
+                    case 'Left':
+                        if (this.xSpeed !== scale * 1) {
+                            this.xSpeed = -scale * 1;
+                            this.ySpeed = 0;
+                        }
+                        break;
+                    case 'Right':
+                        if (this.xSpeed !== -scale * 1) {
+                            this.xSpeed = scale * 1;
+                            this.ySpeed = 0;
+                        }
+                        break;
+                }
+            };
+
+            this.eat = function (fruit) {
+                if (this.x === fruit.x && this.y === fruit.y) {
+                    this.total++;
+                    return true;
+                }
+                return false;
+            };
+
+            this.checkCollision = function () {
+                for (let i = 0; i < this.tail.length; i++) {
+                    if (this.x === this.tail[i].x && this.y === this.tail[i].y) {
+                        showGameOverPopup();
+                        return;
+                    }
+                }
+            };
+        }
+
+        function Fruit() {
+            this.x;
+            this.y;
+
+            this.pickLocation = function () {
+                this.x = (Math.floor(Math.random() * rows)) * scale;
+                this.y = (Math.floor(Math.random() * columns)) * scale;
+            };
+
+            this.draw = function () {
+                ctx.fillStyle = "#f44336";
+                ctx.fillRect(this.x, this.y, scale, scale);
+            };
+        }
+
+        function showGameOverPopup() {
+            gameOverPopup.style.display = 'block';
+            finalScoreDisplay.innerText = snake.total;
+        }
+
+        document.getElementById('tryAgainButton').addEventListener('click', () => {
+            gameOverPopup.style.display = 'none';
+            snake = new Snake();
+            fruit = new Fruit();
+            fruit.pickLocation();
+        });
+
+        document.getElementById('quitButton').addEventListener('click', () => {
+            window.location.href = 'portfolio.html';
+        });
+    </script>
+    
+</body>
+
+</html>

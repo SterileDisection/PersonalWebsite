@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Game</title>
+    <style>
+        body {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-family: 'Roboto', sans-serif;
+            align-items: center;
+            background: linear-gradient(to bottom, #201658 0%, #2575fc 100%);
+            color: white;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #game-container {
+            width: 80%;
+        }
+
+        #question-container {
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            /* Align items in a column */
+            align-items: center;
+            /* Align items at the center horizontally */
+        }
+
+        .choice-button {
+            margin-top: 10px;
+            background-color: #cccccc;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            display: block;
+            width: 200px;
+            /* Set a fixed width for all buttons */
+        }
+
+        .choice-button:hover {
+            background-color: #aaaaaa;
+        }
+
+        #try-again-button,
+        #back-button,
+        #quit-button {
+            background-color: black;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #try-again-button:hover,
+        #back-button:hover,
+        #quit-button:hover {
+            background-color: #333333;
+        }
+
+        #button-container {
+            margin-top: 20px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            text-align: left;
+            width: 30%;
+            max-width: 600px;
+            padding: 20px;
+            color: white;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+        }
+
+        #animation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #animation {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <h1>Trivia Game</h1>
+        <div id="animation-container">
+            <iframe id="animation" src="animation.html" frameborder="0"></iframe>
+        </div>
+        <div id="question-container">
+            <h2 id="question"></h2>
+            <div id="button-container"></div>
+        </div>
+        
+
+    </div>
+    <div>
+        <a href="portfolio.html">
+            <button id="back-button" style="display: none;">Back</button>
+        </a>
+        
+    </div>
+    <footer><p style="color: #537FE7;">&copy; 2024 Aaron Pacheco. All Rights Reserved.</p></footer>
+    <div class="sidebar">
+        <h2>How I Made This Game</h2>
+        <h2>HTML Structure:</h2>
+        <p>I structured the HTML to create the foundation of the trivia game.</p>
+        <p>Elements were carefully chosen to accommodate the game canvas, question display, answer buttons, and
+            navigation controls.</p>
+
+        <h2>CSS Styling:</h2>
+        <p>I applied CSS styling to enhance the layout, colors, and fonts of the trivia game.</p>
+        <p>Layout configurations were adjusted to position elements as intended, ensuring consistency and visual appeal.
+        </p>
+        <p>To improve presentation, I utilized background colors, borders, and other styles.</p>
+
+        <h2>JavaScript Functionality:</h2>
+        <p>Javascript played a crucial role in controlling the game's behavior and logic.</p>
+        <p>I initialized game variables to manage the current question, score, and user interaction.</p>
+        <p>Functions were implemented to display questions, handle user answers, calculate scores, and manage game
+            progression.</p>
+
+        <h2>Game Logic:</h2>
+        <p>I defined the gameplay mechanics and rules to ensure an engaging trivia experience.</p>
+        <p>Core mechanics such as displaying questions, processing answers, and tracking scores were implemented.</p>
+        <p>Clear instructions and feedback were integrated into the game to guide and inform the player throughout their
+            trivia experience.</p>
+        <p>Thorough testing was conducted to verify the game's functionality and ensure it delivers an enjoyable user
+            experience.</p>
+    </div>
+    <script>
+
+        const questions = [
+            {
+                question: "What is the capital of France?",
+                choices: ["London", "Paris", "Berlin", "Rome"],
+                answer: 1
+            },
+            {
+                question: "What is the chemical symbol for water?",
+                choices: ["W", "H2O", "O", "H"],
+                answer: 1
+            },
+            {
+                question: "Who wrote 'To Kill a Mockingbird'?",
+                choices: ["Harper Lee", "Mark Twain", "Charles Dickens", "F. Scott Fitzgerald"],
+                answer: 0
+            },
+            {
+                question: "Which planet is known as the Red Planet?",
+                choices: ["Venus", "Jupiter", "Mars", "Saturn"],
+                answer: 2
+            },
+            {
+                question: "What is the tallest mammal in the world?",
+                choices: ["Elephant", "Giraffe", "Whale", "Rhino"],
+                answer: 1
+            },
+            {
+                question: "Which country is known as the Land of the Rising Sun?",
+                choices: ["China", "Japan", "India", "Australia"],
+                answer: 1
+            },
+            {
+                question: "What is the largest organ in the human body?",
+                choices: ["Liver", "Skin", "Heart", "Lung"],
+                answer: 1
+            },
+            {
+                question: "Who painted the Mona Lisa?",
+                choices: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso", "Michelangelo"],
+                answer: 1
+            },
+            {
+                question: "What is the capital of Australia?",
+                choices: ["Sydney", "Melbourne", "Canberra", "Perth"],
+                answer: 2
+            },
+            {
+                question: "What is the main ingredient in guacamole?",
+                choices: ["Tomato", "Avocado", "Onion", "Cilantro"],
+                answer: 1
+            },
+            {
+                question: "What is the chemical symbol for gold?",
+                choices: ["G", "Au", "Ag", "Go"],
+                answer: 1
+            },
+            {
+                question: "Who wrote 'Pride and Prejudice'?",
+                choices: ["Jane Austen", "Emily Bronte", "Charlotte Bronte", "F. Scott Fitzgerald"],
+                answer: 0
+            },
+            {
+                question: "What is the smallest country in the world?",
+                choices: ["Monaco", "Vatican City", "Maldives", "Nauru"],
+                answer: 1
+            },
+            {
+                question: "What is the capital of Canada?",
+                choices: ["Toronto", "Ottawa", "Montreal", "Vancouver"],
+                answer: 1
+            },
+            {
+                question: "What is the chemical symbol for iron?",
+                choices: ["I", "Fe", "Ir", "Fr"],
+                answer: 1
+            },
+            {
+                question: "Who painted 'The Starry Night'?",
+                choices: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso", "Claude Monet"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for silver?",
+                choices: ["Sv", "Si", "Ag", "Sr"],
+                answer: 2
+            },
+            {
+                question: "What is the largest ocean in the world?",
+                choices: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+                answer: 3
+            },
+            {
+                question: "Who was the first woman to win a Nobel Prize?",
+                choices: ["Marie Curie", "Rosalind Franklin", "Ada Lovelace", "Mother Teresa"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for hydrogen?",
+                choices: ["Hg", "He", "H", "Hy"],
+                answer: 2
+            },
+            {
+                question: "Who is known as the 'Father of Computers'?",
+                choices: ["Bill Gates", "Charles Babbage", "Alan Turing", "Steve Jobs"],
+                answer: 1
+            },
+            {
+                question: "What is the capital of South Africa?",
+                choices: ["Johannesburg", "Cape Town", "Pretoria", "Durban"],
+                answer: 2
+            },
+            {
+                question: "Who discovered penicillin?",
+                choices: ["Alexander Fleming", "Louis Pasteur", "Marie Curie", "Albert Einstein"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for sodium?",
+                choices: ["S", "Sa", "Na", "So"],
+                answer: 2
+            },
+            {
+                question: "Who wrote 'The Odyssey'?",
+                choices: ["Homer", "Virgil", "Plato", "Aristotle"],
+                answer: 0
+            },
+            {
+                question: "What is the largest desert in the world?",
+                choices: ["Sahara Desert", "Arabian Desert", "Gobi Desert", "Antarctica Desert"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for nitrogen?",
+                choices: ["Ni", "N", "Ne", "Nu"],
+                answer: 1
+            },
+            {
+                question: "Who was the first woman to fly solo across the Atlantic Ocean?",
+                choices: ["Amelia Earhart", "Bessie Coleman", "Jacqueline Cochran", "Harriet Quimby"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for carbon?",
+                choices: ["C", "Ca", "Co", "Cu"],
+                answer: 0
+            },
+            {
+                question: "Who painted 'The Scream'?",
+                choices: ["Vincent van Gogh", "Edvard Munch", "Pablo Picasso", "Claude Monet"],
+                answer: 1
+            },
+            {
+                question: "What is the largest land mammal?",
+                choices: ["Elephant", "Blue Whale", "Giraffe", "Hippopotamus"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for potassium?",
+                choices: ["P", "K", "Ka", "Po"],
+                answer: 1
+            },
+            {
+                question: "Who was the first President of the United States?",
+                choices: ["Thomas Jefferson", "John Adams", "George Washington", "Benjamin Franklin"],
+                answer: 2
+            },
+            {
+                question: "What is the chemical symbol for calcium?",
+                choices: ["C", "Ca", "Co", "Ce"],
+                answer: 1
+            },
+            {
+                question: "Who wrote 'The Grapes of Wrath'?",
+                choices: ["John Steinbeck", "F. Scott Fitzgerald", "Ernest Hemingway", "Mark Twain"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for lead?",
+                choices: ["Le", "L", "Pb", "P"],
+                answer: 2
+            },
+            {
+                question: "What is the largest bird in the world?",
+                choices: ["Ostrich", "Albatross", "Eagle", "Condor"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for tin?",
+                choices: ["Tn", "Ti", "T", "Sn"],
+                answer: 3
+            },
+            {
+                question: "Who was the first woman to win a Nobel Prize?",
+                choices: ["Marie Curie", "Rosalind Franklin", "Ada Lovelace", "Mother Teresa"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for chlorine?",
+                choices: ["C", "Ch", "Cl", "Ce"],
+                answer: 2
+            },
+            {
+                question: "Who wrote 'The Canterbury Tales'?",
+                choices: ["Geoffrey Chaucer", "John Milton", "William Shakespeare", "Charles Dickens"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for mercury?",
+                choices: ["Me", "Hg", "Hy", "M"],
+                answer: 1
+            },
+            {
+                question: "Who was the first woman to win the Nobel Prize in Physics?",
+                choices: ["Marie Curie", "Rosalind Franklin", "Ada Lovelace", "Maria Goeppert Mayer"],
+                answer: 3
+            },
+            {
+                question: "What is the chemical symbol for sulfur?",
+                choices: ["Sf", "S", "Su", "Sl"],
+                answer: 1
+            },
+            {
+                question: "Who wrote 'The Scarlet Letter'?",
+                choices: ["Nathaniel Hawthorne", "Mark Twain", "Herman Melville", "Emily Dickinson"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for zinc?",
+                choices: ["Zn", "Zc", "Zi", "Z"],
+                answer: 0
+            },
+            {
+                question: "Who discovered radium and polonium?",
+                choices: ["Marie Curie", "Albert Einstein", "Isaac Newton", "Galileo Galilei"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for argon?",
+                choices: ["Ag", "Ar", "Agon", "Ao"],
+                answer: 1
+            },
+            {
+                question: "Who wrote 'Moby Dick'?",
+                choices: ["Herman Melville", "Mark Twain", "Nathaniel Hawthorne", "Emily Dickinson"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for uranium?",
+                choices: ["Ur", "Un", "U", "Ura"],
+                answer: 2
+            },
+            {
+                question: "Who painted 'Girl with a Pearl Earring'?",
+                choices: ["Johannes Vermeer", "Leonardo da Vinci", "Pablo Picasso", "Vincent van Gogh"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for platinum?",
+                choices: ["Pm", "Pt", "P", "Pl"],
+                answer: 1
+            },
+            {
+                question: "Who wrote 'Wuthering Heights'?",
+                choices: ["Emily Bronte", "Jane Austen", "Charlotte Bronte", "F. Scott Fitzgerald"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for neon?",
+                choices: ["N", "Ne", "No", "Na"],
+                answer: 1
+            },
+            {
+                question: "Who composed 'Symphony No. 9'?",
+                choices: ["Ludwig van Beethoven", "Wolfgang Amadeus Mozart", "Johann Sebastian Bach", "Johannes Brahms"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for cobalt?",
+                choices: ["Co", "Cb", "C", "Ct"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'The Picture of Dorian Gray'?",
+                choices: ["Oscar Wilde", "Charles Dickens", "Jane Austen", "Emily Bronte"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for radium?",
+                choices: ["Ra", "Rd", "R", "Rdium"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'The Sun Also Rises'?",
+                choices: ["Ernest Hemingway", "F. Scott Fitzgerald", "John Steinbeck", "William Faulkner"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for helium?",
+                choices: ["Hm", "Hl", "H", "He"],
+                answer: 3
+            },
+            {
+                question: "Who composed 'The Four Seasons'?",
+                choices: ["Antonio Vivaldi", "Johann Sebastian Bach", "Ludwig van Beethoven", "Wolfgang Amadeus Mozart"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for silicon?",
+                choices: ["S", "Si", "Sl", "Sn"],
+                answer: 1
+            },
+            {
+                question: "Who wrote 'Anna Karenina'?",
+                choices: ["Leo Tolstoy", "Fyodor Dostoevsky", "Anton Chekhov", "Ivan Turgenev"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for tin?",
+                choices: ["Ti", "T", "Tn", "Sn"],
+                answer: 3
+            },
+            {
+                question: "Who wrote 'The Adventures of Tom Sawyer'?",
+                choices: ["Mark Twain", "Herman Melville", "Nathaniel Hawthorne", "F. Scott Fitzgerald"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for tungsten?",
+                choices: ["T", "Tw", "Tg", "W"],
+                answer: 3
+            },
+            {
+                question: "Who painted 'The Last Supper'?",
+                choices: ["Leonardo da Vinci", "Vincent van Gogh", "Pablo Picasso", "Claude Monet"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for palladium?",
+                choices: ["Pd", "Pa", "Pl", "Pm"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'Crime and Punishment'?",
+                choices: ["Fyodor Dostoevsky", "Leo Tolstoy", "Anton Chekhov", "Ivan Turgenev"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for radon?",
+                choices: ["Rd", "R", "Ra", "Rn"],
+                answer: 3
+            },
+            {
+                question: "Who composed 'Swan Lake'?",
+                choices: ["Pyotr Ilyich Tchaikovsky", "Johann Sebastian Bach", "Wolfgang Amadeus Mozart", "Ludwig van Beethoven"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for cobalt?",
+                choices: ["Co", "C", "Cb", "Ct"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'War and Peace'?",
+                choices: ["Leo Tolstoy", "Fyodor Dostoevsky", "Anton Chekhov", "Ivan Turgenev"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for osmium?",
+                choices: ["O", "Om", "Ou", "Os"],
+                answer: 3
+            },
+            {
+                question: "Who composed 'The Marriage of Figaro'?",
+                choices: ["Wolfgang Amadeus Mozart", "Ludwig van Beethoven", "Johann Sebastian Bach", "Pyotr Ilyich Tchaikovsky"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for barium?",
+                choices: ["Br", "Ba", "B", "Bu"],
+                answer: 1
+            },
+            {
+                question: "Who wrote 'Les Misérables'?",
+                choices: ["Victor Hugo", "Gustave Flaubert", "Alexandre Dumas", "Émile Zola"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for bismuth?",
+                choices: ["Bi", "Bt", "Bs", "Bh"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'The Magic Flute'?",
+                choices: ["Wolfgang Amadeus Mozart", "Ludwig van Beethoven", "Johann Sebastian Bach", "Pyotr Ilyich Tchaikovsky"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for molybdenum?",
+                choices: ["Mo", "Ml", "Mn", "Mu"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'The Count of Monte Cristo'?",
+                choices: ["Alexandre Dumas", "Victor Hugo", "Gustave Flaubert", "Émile Zola"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for vanadium?",
+                choices: ["V", "Va", "Vd", "Vn"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'The Nutcracker'?",
+                choices: ["Pyotr Ilyich Tchaikovsky", "Ludwig van Beethoven", "Johann Sebastian Bach", "Wolfgang Amadeus Mozart"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for rhenium?",
+                choices: ["Rh", "Rd", "Re", "Rn"],
+                answer: 2
+            },
+            {
+                question: "Who wrote 'The Three Musketeers'?",
+                choices: ["Alexandre Dumas", "Victor Hugo", "Gustave Flaubert", "Émile Zola"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for neodymium?",
+                choices: ["Ne", "Nd", "N", "Nm"],
+                answer: 1
+            },
+            {
+                question: "Who composed 'Carmen'?",
+                choices: ["Georges Bizet", "Claude Debussy", "Hector Berlioz", "Richard Wagner"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for hafnium?",
+                choices: ["Hf", "H", "Hm", "Hn"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'The Hunchback of Notre-Dame'?",
+                choices: ["Victor Hugo", "Alexandre Dumas", "Gustave Flaubert", "Émile Zola"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for technetium?",
+                choices: ["Tc", "Te", "Tn", "T"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'Rigoletto'?",
+                choices: ["Giuseppe Verdi", "Giacomo Puccini", "Richard Wagner", "Claude Debussy"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for tantalum?",
+                choices: ["Ta", "T", "Tn", "Tl"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'The Strange Case of Dr Jekyll and Mr Hyde'?",
+                choices: ["Robert Louis Stevenson", "Bram Stoker", "Mary Shelley", "H.G. Wells"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for osmium?",
+                choices: ["Os", "O", "Om", "Os"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'La traviata'?",
+                choices: ["Giuseppe Verdi", "Giacomo Puccini", "Richard Wagner", "Claude Debussy"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for ruthenium?",
+                choices: ["Ru", "R", "Rt", "Rh"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'The War of the Worlds'?",
+                choices: ["H.G. Wells", "Jules Verne", "Aldous Huxley", "George Orwell"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for iridium?",
+                choices: ["Ir", "I", "Im", "Id"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'Madama Butterfly'?",
+                choices: ["Giacomo Puccini", "Giuseppe Verdi", "Richard Wagner", "Claude Debussy"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for rhodium?",
+                choices: ["Rh", "R", "Rd", "Rh"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'Around the World in Eighty Days'?",
+                choices: ["Jules Verne", "H.G. Wells", "Aldous Huxley", "George Orwell"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for palladium?",
+                choices: ["Pd", "P", "Pl", "Pm"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'Tosca'?",
+                choices: ["Giacomo Puccini", "Giuseppe Verdi", "Richard Wagner", "Claude Debussy"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for platinum?",
+                choices: ["Pt", "P", "Pm", "Pl"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'The Time Machine'?",
+                choices: ["H.G. Wells", "Jules Verne", "Aldous Huxley", "George Orwell"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for indium?",
+                choices: ["In", "I", "Im", "Id"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'The Barber of Seville'?",
+                choices: ["Gioachino Rossini", "Giuseppe Verdi", "Richard Wagner", "Claude Debussy"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for silver?",
+                choices: ["Ag", "S", "Si", "Sr"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'The Invisible Man'?",
+                choices: ["H.G. Wells", "Jules Verne", "Aldous Huxley", "George Orwell"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for cadmium?",
+                choices: ["Cd", "C", "Ca", "Co"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'Don Giovanni'?",
+                choices: ["Wolfgang Amadeus Mozart", "Ludwig van Beethoven", "Johann Sebastian Bach", "Pyotr Ilyich Tchaikovsky"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for mercury?",
+                choices: ["Hg", "M", "Me", "Hy"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'The Island of Doctor Moreau'?",
+                choices: ["H.G. Wells", "Jules Verne", "Aldous Huxley", "George Orwell"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for thallium?",
+                choices: ["Tl", "T", "Th", "Tm"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'Cavalleria rusticana'?",
+                choices: ["Pietro Mascagni", "Giacomo Puccini", "Richard Wagner", "Claude Debussy"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for cadmium?",
+                choices: ["Cd", "C", "Ca", "Co"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'The Call of the Wild'?",
+                choices: ["Jack London", "Jules Verne", "Aldous Huxley", "George Orwell"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for lanthanum?",
+                choices: ["La", "L", "Lm", "Ln"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'Turandot'?",
+                choices: ["Giacomo Puccini", "Giuseppe Verdi", "Richard Wagner", "Claude Debussy"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for tungsten?",
+                choices: ["W", "T", "Tw", "Tg"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'Heart of Darkness'?",
+                choices: ["Joseph Conrad", "Jack London", "Aldous Huxley", "George Orwell"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for thorium?",
+                choices: ["Th", "T", "Thm", "Tr"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'The Marriage of Figaro'?",
+                choices: ["Wolfgang Amadeus Mozart", "Ludwig van Beethoven", "Johann Sebastian Bach", "Pyotr Ilyich Tchaikovsky"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for uranium?",
+                choices: ["U", "Ur", "Un", "Um"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'Robinson Crusoe'?",
+                choices: ["Daniel Defoe", "Jonathan Swift", "Voltaire", "Mary Shelley"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for gold?",
+                choices: ["Au", "A", "Ag", "O"],
+                answer: 0
+            },
+            {
+                question: "Who composed 'Cosi fan tutte'?",
+                choices: ["Wolfgang Amadeus Mozart", "Ludwig van Beethoven", "Johann Sebastian Bach", "Pyotr Ilyich Tchaikovsky"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for silver?",
+                choices: ["Ag", "S", "Sr", "Si"],
+                answer: 0
+            },
+            {
+                question: "Who wrote 'Gulliver's Travels'?",
+                choices: ["Jonathan Swift", "Daniel Defoe", "Voltaire", "Mary Shelley"],
+                answer: 0
+            },
+            {
+                question: "What is the chemical symbol for copper?",
+                choices: ["Cu", "C", "Co", "Ca"],
+                answer: 0
+            }
+        ];
+
+
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function getRandomQuestions() {
+            const shuffledQuestions = shuffle(questions).slice(0, 10);
+            return shuffledQuestions;
+        }
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        function displayQuestion(question) {
+            document.getElementById('question').textContent = question.question;
+
+            const buttonContainer = document.getElementById('button-container');
+            buttonContainer.innerHTML = '';
+
+            question.choices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.classList.add('choice-button');
+                button.textContent = choice;
+                button.addEventListener('click', () => checkAnswer(index));
+                buttonContainer.appendChild(button);
+            });
+
+            document.getElementById('back-button').style.display = 'block';
+        }
+
+        function checkAnswer(choice) {
+            const question = currentQuestions[currentQuestionIndex];
+            if (choice === question.answer) {
+                score++;
+            }
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentQuestions.length) {
+                displayQuestion(currentQuestions[currentQuestionIndex]);
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            const buttonContainer = document.getElementById('button-container');
+            buttonContainer.innerHTML = '';
+
+            const resultText = document.createElement('p');
+            resultText.textContent = `You scored ${score} out of ${currentQuestions.length}.`;
+            buttonContainer.appendChild(resultText);
+
+            const tryAgainButton = document.createElement('button');
+            tryAgainButton.id = 'try-again-button';
+            tryAgainButton.textContent = 'Try Again';
+            tryAgainButton.addEventListener('click', startGame);
+            buttonContainer.appendChild(tryAgainButton);
+
+            const backButton = document.getElementById('back-button');
+            backButton.style.display = 'none';
+
+            const quitButton = document.createElement('button');
+            quitButton.id = 'quit-button';
+            quitButton.textContent = 'Quit';
+            quitButton.addEventListener('click', () => window.location.href = 'portfolio.html');
+            buttonContainer.appendChild(quitButton);
+        }
+
+        let currentQuestions;
+
+        function startGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            currentQuestions = getRandomQuestions();
+            displayQuestion(currentQuestions[currentQuestionIndex]);
+        }
+
+        startGame();
+    </script>
+</body>
+
+</html>

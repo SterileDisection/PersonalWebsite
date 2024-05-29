@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Currency Converter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #4f93ce;
+      --secondary-color: #f9f9f9;
+      --accent-color: #ffc107;
+      --text-color: #333;
+      --box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: linear-gradient(to bottom, #201658 0%, #2575fc 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: var(--text-color);
+    }
+
+    .converter-container {
+      background-color: var(--secondary-color);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: var(--box-shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 400px;
+      width: 100%;
+      z-index: 1000;
+    }
+
+    input,
+    select,
+    button,
+    .swap {
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    input,
+    select {
+      width: calc(100% - 22px);
+    }
+
+    button,
+    .swap {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    button:hover,
+    .swap:hover {
+      background-color: darken(var(--primary-color), 10%);
+    }
+
+    .swap {
+      background-color: var(--accent-color);
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      position: relative;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .swap::before {
+      content: '↔';
+      display: block;
+      font-size: 20px;
+    }
+
+    #result {
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: var(--box-shadow);
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <iframe src="animation.html"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none;"></iframe>
+
+  <div class="converter-container">
+    <h2>Currency Converter</h2>
+    <div id="currencyForm">
+      <input type="number" id="amount" class="form-control" placeholder="Amount" value="1">
+      <select id="fromCurrency" class="form-control"></select>
+      <select id="toCurrency" class="form-control"></select>
+      <button onclick="convertCurrency()">Convert</button>
+      <a href="portfolio.html" class="game-button">Back</a>
+    </div>
+    <div id="result" class="loading">Loading...</div>
+    <footer><p style="color: #537FE7;">&copy; 2024 Aaron Pacheco. All Rights Reserved.</p></footer>
+  </div>
+  
+
+  <script>
+    const apiKey = '5da4dc417057b4f231acb345'; // Replace YOUR_API_KEY_HERE with your actual API key
+    const apiBaseUrl = `https://v6.exchangerate-api.com/v6/${apiKey}`;
+
+    async function fetchCurrencies() {
+      try {
+        const response = await fetch(`${apiBaseUrl}/codes`);
+        const data = await response.json();
+        const currencySelects = document.querySelectorAll('select');
+        data.supported_codes.forEach(code => {
+          const option = document.createElement('option');
+          option.value = code[0];
+          option.innerText = `${code[0]} - ${code[1]}`;
+          currencySelects.forEach(select => {
+            select.appendChild(option.cloneNode(true));
+          });
+        });
+        document.getElementById('fromCurrency').value = 'USD';
+        document.getElementById('toCurrency').value = 'EUR';
+        document.getElementById('result').textContent = '';
+      } catch (error) {
+        document.getElementById('result').textContent = 'Failed to load currencies.';
+        console.error('Error fetching currency codes:', error);
+      }
+    }
+
+    async function convertCurrency() {
+      const amount = document.getElementById('amount').value;
+      const fromCurrency = document.getElementById('fromCurrency').value;
+      const toCurrency = document.getElementById('toCurrency').value;
+      document.getElementById('result').className = 'loading';
+      document.getElementById('result').textContent = 'Converting...';
+
+      try {
+        const response = await fetch(`${apiBaseUrl}/pair/${fromCurrency}/${toCurrency}/${amount}`);
+        const data = await response.json();
+        document.getElementById('result').className = '';
+        document.getElementById('result').textContent = `${amount} ${fromCurrency} = ${data.conversion_result} ${toCurrency}`;
+      } catch (error) {
+        document.getElementById('result').className = 'error-message';
+        document.getElementById('result').textContent = 'Conversion failed. Please try again.';
+        console.error('Error:', error);
+      }
+    }
+
+    fetchCurrencies();
+  </script>
+
+</body>
+
+</html>

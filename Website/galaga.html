@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaga</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-family: 'Roboto', sans-serif;
+            align-items: center;
+            background: linear-gradient(to bottom, #201658 0%, #2575fc 100%);
+            color: white;
+        }
+
+        canvas {
+            border: 1px solid black;
+            display: block;
+            margin: 20px auto;
+            background-color: black;
+        }
+
+        #gameTitle {
+            font-size: 36px;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #overlay-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            color: black;
+        }
+
+        #animation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #animation {
+            width: 100%;
+            height: 100%;
+        }
+
+        #back-button:hover {
+            background-color: #333;
+        }
+
+        .button {
+            background-color: #000000;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            text-transform: uppercase;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 30%;
+            text-align: left;
+            max-width: 400px;
+            padding: 20px;
+            color: white;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar h2 {
+            text-align: left;
+        }
+
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+        }
+
+        #gameTitle,
+        h2,
+        .button {
+            text-align: center;
+            margin: 10px auto;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="main-content">
+            <h1 id="gameTitle">Space Invaders</h1>
+            <h2>Controls are a, d, and Spacebar</h2>
+            <div id="animation-container">
+                <iframe id="animation" src="animation.html" frameborder="0"></iframe>
+            </div>
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            <div id="overlay">
+                <div id="overlay-content">
+                    <h1 id="gameOverText">Game Over</h1>
+                    <p>Final Score: <span id="final-score"></span></p>
+                    <button id="try-again" class="button">Try Again</button>
+                    <button id="quit" class="button">Quit</button>
+                </div>
+            </div>
+            <button id="start-game" class="button">Start Game</button>
+            <button id="back-button" class="button">Back</button>
+        </div>
+
+        <div class="sidebar">
+            <h2>How I Made This Game</h2>
+            <h2>HTML Structure:</h2>
+            <p>I structured the HTML to establish the foundation of the webpage.</p>
+            <p>Elements were carefully chosen to accommodate the game canvas, where graphics are drawn, along with
+                headings for the game title and instructions, buttons for game control, and an overlay for game over
+                screen.</p>
+
+            <h2>CSS Styling:</h2>
+            <p>I applied CSS styling to enhance the layout, colors, and fonts of the page.</p>
+            <p>Layout configurations were adjusted to position elements as intended, ensuring consistency and visual
+                appeal.</p>
+            <p>To improve presentation, I utilized background colors, borders, and other styles.</p>
+
+            <h2>JavaScript Functionality:</h2>
+            <p>Javascript played a crucial role in controlling the game's behavior and logic.</p>
+            <p>I initialized game variables like player position, score, and lives, setting up event listeners to manage
+                user input for game control.</p>
+            <p>Functions were implemented to update the game state, handle player movement, collision detection,
+                scoring, and rendering game graphics.</p>
+            <p>I also developed functions for starting the game, managing game over conditions, and enabling game
+                restart or quitting.</p>
+
+            <h2>Game Logic:</h2>
+            <p>I defined the gameplay mechanics and rules to ensure an engaging experience.</p>
+            <p>Core mechanics such as player movement, interaction with game elements, scoring, and win/lose conditions
+                were implemented.</p>
+            <p>Clear instructions and feedback were integrated into the game to guide and inform the player throughout
+                their experience.</p>
+            <p>Thorough testing was conducted to verify the game's functionality and ensure it delivers an enjoyable
+                user experience.</p>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("back-button").addEventListener("click", function () {
+                window.location.href = "portfolio.html";
+            });
+
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const overlay = document.getElementById('overlay');
+            const finalScoreSpan = document.getElementById('final-score');
+            const tryAgainBtn = document.getElementById('try-again');
+            const quitBtn = document.getElementById('quit');
+            const startGameBtn = document.getElementById('start-game');
+            const gameOverText = document.getElementById('gameOverText');
+
+            const SCREEN_WIDTH = 800;
+            const SCREEN_HEIGHT = 600;
+            const MAX_LIVES = 3;
+            const MAX_ENEMIES = 3;
+            const ENEMY_SHOOT_PROBABILITY = 0.005;
+
+            let playerImg = new Image();
+            playerImg.src = 'player.png';
+
+            let bulletImg = new Image();
+            bulletImg.src = 'pbullet.png';
+
+            let enemyImg = new Image();
+            enemyImg.src = 'enemy.png';
+
+            let playerX;
+            let bullets;
+            let enemies;
+            let enemyBullets;
+            let score;
+            let playerLives;
+            let playerXSpeed;
+            let gameOverFlag;
+
+            function initializeGame() {
+                playerX = SCREEN_WIDTH / 2;
+                bullets = [];
+                enemies = [];
+                enemyBullets = [];
+                score = 0;
+                playerLives = MAX_LIVES;
+                playerXSpeed = 0;
+                gameOverFlag = false;
+            }
+
+            function startGame() {
+                initializeGame();
+                update();
+            }
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'a') {
+                    playerXSpeed = -5;
+                } else if (event.key === 'd') {
+                    playerXSpeed = 5;
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'a') {
+                    playerXSpeed = -5;
+                } else if (event.key === 'd') {
+                    playerXSpeed = 5;
+                } else if (event.key === ' ') {
+                    event.preventDefault();
+                    if (!gameOverFlag) {
+                        bullets.push({
+                            x: playerX + playerImg.width / 2 - bulletImg.width / 2,
+                            y: canvas.height - playerImg.height,
+                        });
+                    }
+                }
+            });
+
+            document.addEventListener('keyup', function (event) {
+                if (event.key === 'a' || event.key === 'd') {
+                    playerXSpeed = 0;
+                }
+            });
+
+            function update() {
+                if (!gameOverFlag) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    playerX += playerXSpeed;
+
+                    if (playerX < 0) {
+                        playerX = 0;
+                    } else if (playerX > SCREEN_WIDTH - playerImg.width) {
+                        playerX = SCREEN_WIDTH - playerImg.width;
+                    }
+
+                    bullets = bullets.filter(function (bullet) {
+                        bullet.y -= 7;
+                        ctx.drawImage(bulletImg, bullet.x, bullet.y);
+                        return bullet.y > 0;
+                    });
+
+                    if (enemies.length < MAX_ENEMIES && Math.random() < 0.01) {
+                        const enemyX = Math.random() * (SCREEN_WIDTH - enemyImg.width);
+                        enemies.push({
+                            x: enemyX,
+                            y: -enemyImg.height,
+                        });
+                    }
+
+                    enemies = enemies.filter(function (enemy) {
+                        enemy.y += 2;
+                        ctx.drawImage(enemyImg, enemy.x, enemy.y);
+                        return enemy.y < SCREEN_HEIGHT;
+                    });
+
+                    enemies.forEach(function (enemy) {
+                        if (Math.random() < ENEMY_SHOOT_PROBABILITY) {
+                            enemyBullets.push({
+                                x: enemy.x + enemyImg.width / 2,
+                                y: enemy.y + enemyImg.height,
+                            });
+                        }
+                    });
+
+                    enemyBullets = enemyBullets.filter(function (bullet) {
+                        bullet.y += 5;
+                        ctx.fillStyle = 'red';
+                        ctx.fillRect(bullet.x, bullet.y, 2, 6);
+                        return bullet.y < SCREEN_HEIGHT;
+                    });
+
+                    enemyBullets.forEach(function (bullet) {
+                        if (
+                            bullet.x > playerX &&
+                            bullet.x < playerX + playerImg.width &&
+                            bullet.y > canvas.height - playerImg.height
+                        ) {
+                            playerLives--;
+                            enemyBullets.splice(enemyBullets.indexOf(bullet), 1);
+                            if (playerLives === 0) {
+                                gameOver();
+                            }
+                        }
+                    });
+
+                    enemies.forEach(function (enemy, enemyIndex) {
+                        if (
+                            (playerX < enemy.x + enemyImg.width &&
+                                playerX + playerImg.width > enemy.x &&
+                                canvas.height - playerImg.height < enemy.y + enemyImg.height &&
+                                canvas.height >= enemy.y) ||
+                            enemy.y >= SCREEN_HEIGHT - enemyImg.height
+                        ) {
+                            enemies.splice(enemyIndex, 1);
+                            playerLives--;
+                            if (playerLives === 0) {
+                                gameOver();
+                            }
+                        }
+                    });
+
+                    bullets.forEach(function (bullet, bulletIndex) {
+                        enemies.forEach(function (enemy, enemyIndex) {
+                            if (
+                                bullet.x < enemy.x + enemyImg.width &&
+                                bullet.x + bulletImg.width > enemy.x &&
+                                bullet.y < enemy.y + enemyImg.height &&
+                                bullet.y + bulletImg.height > enemy.y
+                            ) {
+                                bullets.splice(bulletIndex, 1);
+                                enemies.splice(enemyIndex, 1);
+                                score++;
+                            }
+                        });
+                    });
+
+                    ctx.drawImage(playerImg, playerX, canvas.height - playerImg.height);
+
+                    ctx.fillStyle = 'white';
+                    ctx.font = '24px Arial';
+                    ctx.fillText('Score: ' + score, 10, 30);
+                    ctx.fillText('Lives: ' + playerLives, 10, 60);
+
+                    requestAnimationFrame(update);
+                } else {
+                    return;
+                }
+            }
+
+            function gameOver() {
+                gameOverFlag = true;
+                finalScoreSpan.textContent = score;
+                overlay.style.display = 'flex';
+            }
+
+            tryAgainBtn.addEventListener('click', function () {
+                overlay.style.display = 'none';
+                startGameBtn.style.display = 'block'; // Change display to block
+            });
+
+            quitBtn.addEventListener('click', function () {
+                overlay.style.display = 'none';
+                window.location.href = 'portfolio.html';
+            });
+
+            startGameBtn.addEventListener('click', function () {
+                startGame();
+                startGameBtn.style.display = 'none';
+            });
+        });
+    </script>
+      <footer><p style="color: #537FE7;">&copy; 2024 Aaron Pacheco. All Rights Reserved.</p></footer>
+
+</body>
+
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title>Note Taking App</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Reset some basic elements */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #201658 0%, #2575fc 100%);
+            color: #333;
+        }
+
+        /* Center the app container and add shadow for depth */
+        #app {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+
+        /* Style the heading */
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        /* Style the note input area */
+        #note-input textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            resize: none;
+            height: 100px;
+            font-size: 1rem;
+        }
+
+        /* Style the save note button */
+        #note-input button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #00897b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        #note-input button:hover {
+            background-color: #00796b;
+        }
+
+        /* Style each note with hover effects */
+        .note {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            border-left: 4px solid #00897b;
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .note span {
+            flex-grow: 1;
+            margin-right: 15px;
+            /* Ensure some space between the note content and the delete button */
+        }
+
+        .note button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: #ff5252;
+            /* Use FontAwesome's red color for the delete icon */
+            font-size: 1.2rem;
+            /* Adjust size as necessary */
+        }
+
+        .note button:hover {
+            color: #ff1744;
+            /* A darker red for hover effect */
+        }
+
+
+
+        /* Responsive design adjustments */
+        @media (max-width: 768px) {
+            #app {
+                margin: 20px;
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+        }
+
+        #animation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #animation {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1>Note Taking App</h1>
+        <div id="animation-container">
+            <iframe id="animation" src="animation.html" frameborder="0"></iframe>
+        </div>
+        <div id="note-input">
+            <textarea id="new-note-content" placeholder="Type your note here..."></textarea>
+            <button id="save-note">Save Note</button>
+        </div>
+        <div id="notes-list">
+            <!-- Enhanced notes will be displayed here -->
+        </div>
+        <a href="portfolio.html" class="game-button">Back</a>
+        
+    </div>
+    <script>// Listen for a click event on the save note button
+        document.getElementById('save-note').addEventListener('click', function () {
+            // Retrieve the content of the note from the textarea
+            const noteContent = document.getElementById('new-note-content').value.trim();
+            if (noteContent) {
+                // Create a note object with a unique ID and the content
+                const note = { id: Date.now(), content: noteContent };
+                // Save the note to localStorage
+                saveNote(note);
+                // Clear the textarea for new input
+                document.getElementById('new-note-content').value = '';
+                // Re-render the notes to include the new note
+                renderNotes();
+            }
+        });
+
+        // Function to save a note to localStorage
+        function saveNote(note) {
+            // Retrieve existing notes from localStorage, or initialize an empty array if none exist
+            const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+            // Add the new note to the array
+            notes.push(note);
+            // Save the updated notes array back to localStorage
+            localStorage.setItem('notes', JSON.stringify(notes));
+        }
+
+        // Function to delete a note, identified by its unique ID
+        function deleteNote(id) {
+            // Retrieve the current array of notes
+            const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+            // Filter out the note to be deleted
+            const filteredNotes = notes.filter(note => note.id !== id);
+            // Update localStorage with the new array
+            localStorage.setItem('notes', JSON.stringify(filteredNotes));
+            // Re-render the notes list to reflect the deletion
+            renderNotes();
+        }
+
+        // Function to render the list of notes on the page
+        function renderNotes() {
+            // Retrieve notes from localStorage
+            const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+            // Get the HTML element where notes will be displayed
+            const notesList = document.getElementById('notes-list');
+            // Clear the notes list to prevent duplicate entries
+            notesList.innerHTML = '';
+            // Loop through each note and create HTML elements for display
+            notes.forEach(note => {
+                const noteElement = document.createElement('div');
+                noteElement.classList.add('note');
+                // Each note will have a span for content and a delete button with an icon
+                noteElement.innerHTML = `
+                    <span>${note.content}</span>
+                    <button onclick="deleteNote(${note.id})" title="Delete note"><i class="fas fa-trash-alt"></i></button>
+                `;
+                // Append the note element to the notes list in the UI
+                notesList.appendChild(noteElement);
+            });
+        }
+
+        // Initial call to render notes from localStorage when the app loads
+        renderNotes();
+    </script>
+    <footer><center><p style="color: #537FE7;">&copy; 2024 Aaron Pacheco. All Rights Reserved.</p></center></footer>
+</body>
+
+</html>

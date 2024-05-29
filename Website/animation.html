@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation</title>
+    <!-- Animation CSS -->
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #212121;
+            color: #fff;
+            padding: 20px 0;
+            text-align: center;
+            z-index: 1;
+            /* Ensure header is below animation container */
+        }
+
+        .animation-container {
+            position: fixed;
+            top: 0;
+            /* Changed to start at the top of the viewport */
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            /* Ensure animation is above header */
+            pointer-events: none;
+            /* Allows clicking through the animation */
+        }
+
+        .laser {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background-color: #00d9ff;
+            /* Red color for laser beam */
+            opacity: 1;
+            pointer-events: none;
+            /* Prevents interaction with the laser element */
+            animation: laserAnimation linear infinite;
+            /* Apply animation */
+        }
+
+        /* Animation */
+        @keyframes laserAnimation {
+            0% {
+                transform: translateY(-100px);
+                /* Start above the viewport */
+                opacity: .75;
+            }
+
+            100% {
+                transform: translateY(calc(100vh + 100px));
+                /* Move slightly past the bottom */
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div class="animation-container">
+        <!-- Laser animations will be added dynamically -->
+    </div>
+
+    <script>
+        function getRandomColor() {
+            const colors = ['#00d9ff', '#1cf42e'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // Function to generate a random number within a range
+        function getRandomNumber(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // Function to create a laser at a specific position
+        function createLaser(x, y) {
+            const laser = document.createElement('div');
+            laser.classList.add('laser');
+            laser.style.left = `${x}px`; // Set the left position
+            laser.style.top = `${y}px`; // Set the top position
+            document.querySelector('.animation-container').appendChild(laser);
+            laser.style.backgroundColor = getRandomColor();
+            const animationDuration = getRandomNumber(2, 8); // Random duration between 2 and 4 seconds
+            laser.style.animationDuration = `${animationDuration}s`;
+
+            // Remove laser after animation completes
+            laser.addEventListener('animationend', () => {
+                laser.remove();
+            });
+
+            // Update total number of lasers
+            updateTotalLasers(1);
+        }
+
+        // Function to update total number of lasers
+        function updateTotalLasers(amount) {
+            const totalLasers = document.querySelectorAll('.laser').length + amount;
+            if (totalLasers > 75) {
+                const lasers = document.querySelectorAll('.laser');
+                let bottomLaser = null;
+                let bottomLaserY = -Infinity;
+
+                // Find the laser closest to the bottom
+                lasers.forEach(laser => {
+                    const laserY = parseInt(laser.style.top);
+                    if (laserY > bottomLaserY) {
+                        bottomLaserY = laserY;
+                        bottomLaser = laser;
+                    }
+                });
+
+                // Remove the laser closest to the bottom
+                if (bottomLaser !== null) {
+                    bottomLaser.remove();
+                }
+            }
+        }
+
+
+        // Function to create a random laser at a random position every second
+        function createRandomLaser() {
+            const x = getRandomNumber(0, window.innerWidth);
+            const y = getRandomNumber(-100, 0); // Start above the viewport
+            createLaser(x, y);
+        }
+
+        // Generate a random laser every second
+        setInterval(createRandomLaser, 400);
+    </script>
+</body>
+
+</html>
